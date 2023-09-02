@@ -33,11 +33,15 @@ where
     }
 
     pub fn read(&mut self) -> nb::Result<MidiMessage, E> {
-        let byte = self.rx.read()?;
-
-        match self.parser.parse(byte) {
-            Some(event) => Ok(event),
-            None => Err(nb::Error::WouldBlock),
+        loop {
+            let byte = self.rx.read()?;
+            match self.parser.parse(byte) {
+                Some(event) => return Ok(event),
+                _ => {
+                    // Do nothing if the parser is not finished.
+                    // If this call would block, read() will fail and return.
+                }
+            };
         }
     }
 }
